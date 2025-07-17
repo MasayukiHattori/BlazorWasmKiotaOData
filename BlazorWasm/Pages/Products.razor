@@ -1,0 +1,57 @@
+﻿@page "/products"
+@using BlazorWasm.Client
+@using BlazorWasm.Client.Models
+@attribute [Authorize]
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Products</h3>
+        @if (_products == null)
+        {
+            <p>Loading products...</p>
+        }
+        else if (!_products.Any())
+        {
+            <p>No products available.</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var product in _products)
+                {
+                    <li>@product.Name - @product.Price</li>
+                }
+            </ul>
+        }
+
+    </Authorized>
+    <NotAuthorized>
+        <BlazorWasm.Components.RedirectLogin />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<Product>? _products;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationState;
+        var user = authState.User;
+        if (!user.Identity?.IsAuthenticated ?? true) return;
+
+        try
+        {
+            var response = await ApiClient.Odata.Products.GetAsync();
+            _products = response?.Value ?? new List<Product>();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Navigation.NavigateTo("login");
+        }
+    }
+}
