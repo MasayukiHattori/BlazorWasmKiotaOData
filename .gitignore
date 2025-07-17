@@ -416,3 +416,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/ProductsApi/products.db-shm
+/ProductsApi/products.db-wal
+/ProductsApi/products.db
